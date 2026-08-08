@@ -1,5 +1,7 @@
 
 const CWA_FORECAST_URL = "https://opendata.cwa.gov.tw/api/v1/rest/datastore/F-D0047-093";
+const CWA_TEMP_URL = "https://opendata.cwa.gov.tw/api/v1/rest/datastore/O-A0038-001";
+const CWA_TYPHOON_TRACK_URL = "https://opendata.cwa.gov.tw/api/v1/rest/datastore/W-C0034-005";
 const IMAGES = {
   radar: "https://cwaopendata.s3.ap-northeast-1.amazonaws.com/Observation/O-A0058-002.png",
   satellite: "https://cwaopendata.s3.ap-northeast-1.amazonaws.com/Observation/O-B0028-002.jpg",
@@ -15,6 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupNav();
   setupSettings();
   setupImages();
+  setupSpecialPages();
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js");
   boot();
 });
@@ -326,3 +329,116 @@ function weatherEmoji(text="",code=null,night=false){
   return"☁️";
 }
 function setStatus(t){$("#status").textContent=t}
+
+
+function setupSpecialPages(){
+  $("#refreshTemp")?.addEventListener("click", loadTemperatureImage);
+  $("#refreshTyphoon")?.addEventListener("click", loadTyphoonState);
+  loadTemperatureImage();
+  loadTyphoonState();
+}
+
+async function loadTemperatureImage(){
+  const key=localStorage.getItem(keyName)||"";
+  const loading=$("#tempLoading"), img=$("#temperatureImg");
+  if(!loading||!img) return;
+  loading.style.display="block";
+  loading.textContent="正在讀取中央氣象署圖資…";
+  img.removeAttribute("src");
+
+  if(!key){
+    loading.textContent="請先在右上角 ⚙︎ 設定中央氣象署 API 授權碼。";
+    return;
+  }
+
+  try{
+    const u=new URL(CWA_TEMP_URL);
+    u.searchParams.set("Authorization",key);
+    u.searchParams.set("format","JSON");
+    const r=await fetch(u,{cache:"no-store"});
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    const data=await r.json();
+    const product=findProductURL(data);
+    if(!product) throw new Error("API 回應中找不到 ProductURL");
+    img.onload=()=>loading.style.display="none";
+    img.onerror=()=>{ loading.style.display="block"; loading.textContent="溫度分布圖載入失敗，請稍後再試。"; };
+    img.src=product+(product.includes("?")?"&":"?")+"t="+Date.now();
+  }catch(e){
+    console.error(e);
+    loading.textContent="溫度分布圖讀取失敗："+(e?.message||e);
+  }
+}
+
+function findProductURL(node){
+  if(!node) return null;
+  if(typeof node==="object"&&!Array.isArray(node)){
+    for(const k of ["ProductURL","productURL","productUrl"]){
+      if(typeof node[k]==="string"&&/^https?:\/\//.test(node[k])) return node[k];
+    }
+    for(const v of Object.values(node)){
+      const found=findProductURL(v);
+      if(found) return found;
+    }
+  }else if(Array.isArray(node)){
+    for(const v of node){
+      const found=findProductURL(v);
+      if(found) return found;
+    }
+  }
+  return null;
+}
+
+async function loadTyphoonState(){
+  const key=localStorage.getItem(keyName)||"";
+  const box=$("#typhoonState");
+  if(!box) return;
+
+  if(!key){
+    box.innerHTML=`<div class="big-emoji">🌀</div><h3>需要 API 授權碼</h3><p>請先在右上角 ⚙︎ 設定中央氣象署授權碼。</p>`;
+    return;
+  }
+
+  box.innerHTML=`<div class="big-emoji">🌀</div><h3>正在確認目前颱風狀態…</h3>`;
+
+  try{
+    const u=new URL(CWA_TYPHOON_TRACK_URL);
+    u.searchParams.set("Authorization",key);
+    u.searchParams.set("format","JSON");
+    const r=await fetch(u,{cache:"no-store"});
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    const data=await r.json();
+
+    // W-C0034-005 only has data while there are active tropical cyclones.
+    const names=[];
+    collectTyphoonNames(data,names);
+    const unique=[...new Set(names.filter(Boolean))];
+
+    if(!unique.length){
+      box.innerHTML=`<div class="big-emoji">🌀</div>
+        <h3>目前沒有可顯示的警報颱風路徑潛勢圖</h3>
+        <p>中央氣象署的「警報颱風路徑潛勢預報」是在有警報颱風時才會產製有效圖資。沒有警報颱風時，官方頁面本身也不會有正常路徑圖。</p>`;
+    }else{
+      box.innerHTML=`<div class="big-emoji">🌀</div>
+        <h3>${unique.join("、")}</h3>
+        <p>偵測到中央氣象署目前有熱帶氣旋路徑資料。請點下方「開啟官方完整路徑潛勢頁面」查看官方 72/120 小時潛勢圖與動畫。</p>`;
+    }
+  }catch(e){
+    console.error(e);
+    box.innerHTML=`<div class="big-emoji">🌀</div>
+      <h3>目前無法讀取颱風狀態</h3>
+      <p>${e?.message||e}</p>`;
+  }
+}
+
+function collectTyphoonNames(node,out){
+  if(!node) return;
+  if(Array.isArray(node)){ node.forEach(v=>collectTyphoonNames(v,out)); return; }
+  if(typeof node!=="object") return;
+  for(const [k,v] of Object.entries(node)){
+    const kk=k.toLowerCase();
+    if(typeof v==="string"&&(kk.includes("typhoonname")||kk==="cwa_typhoon_name"||kk==="typhoon_name")){
+      if(v.trim()&&v.trim()!=="--") out.push(v.trim());
+    }
+    if(typeof v==="object") collectTyphoonNames(v,out);
+  }
+}

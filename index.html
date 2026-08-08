@@ -99,20 +99,33 @@
       </section>
 
       <section class="page" data-page="typhoon">
-        <div class="link-card">
-          <div class="big-emoji">🌀</div>
-          <h2>颱風路徑潛勢圖</h2>
-          <p>開啟中央氣象署官方颱風路徑潛勢頁面。若目前沒有颱風，官方頁面可能不會顯示路徑圖。</p>
-          <a class="primary-link" href="https://www.cwa.gov.tw/V8/C/P/Typhoon/TY_WARN.html" target="_blank" rel="noopener">開啟中央氣象署</a>
+        <div class="image-card">
+          <div class="image-head">
+            <div>
+              <h2>颱風路徑潛勢圖</h2>
+              <p>中央氣象署・警報颱風路徑潛勢預報</p>
+            </div>
+            <button id="refreshTyphoon" class="small-btn">重新整理</button>
+          </div>
+          <div id="typhoonState" class="typhoon-state">
+            <div class="big-emoji">🌀</div>
+            <h3>正在確認目前颱風狀態…</h3>
+          </div>
+          <a class="secondary-link" href="https://www.cwa.gov.tw/V8/C/P/Typhoon/PTA.html" target="_blank" rel="noopener">開啟官方完整路徑潛勢頁面</a>
         </div>
       </section>
 
       <section class="page" data-page="temperature">
-        <div class="link-card">
-          <div class="big-emoji">🌡️</div>
-          <h2>台灣溫度分布圖</h2>
-          <p>開啟中央氣象署官方溫度分布頁面。</p>
-          <a class="primary-link" href="https://www.cwa.gov.tw/V8/C/W/Temperature.html" target="_blank" rel="noopener">開啟中央氣象署</a>
+        <div class="image-card">
+          <div class="image-head">
+            <div>
+              <h2>台灣溫度分布圖</h2>
+              <p>中央氣象署 O-A0038-001・每小時更新</p>
+            </div>
+            <button id="refreshTemp" class="small-btn">重新整理</button>
+          </div>
+          <div id="tempLoading" class="image-loading">正在讀取中央氣象署圖資…</div>
+          <img id="temperatureImg" class="cwa-img" alt="中央氣象署台灣溫度分布圖" />
         </div>
       </section>
     </main>
