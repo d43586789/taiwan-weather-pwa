@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0f2745" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="台灣天氣" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <link rel="stylesheet" href="styles.css" />
+  <title>台灣天氣</title>
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <div>
+        <div class="eyebrow">中央氣象署</div>
+        <h1 id="pageTitle">天氣</h1>
+      </div>
+      <button id="settingsBtn" class="icon-btn" aria-label="設定">⚙︎</button>
+    </header>
+
+    <main>
+      <section class="page active" data-page="home">
+        <div class="hero">
+          <div class="location-row">📍 <span id="placeName">等待定位…</span></div>
+          <div class="hero-main">
+            <div>
+              <div id="currentTemp" class="current-temp">--°</div>
+              <div id="currentWeather" class="current-weather">尚未載入</div>
+            </div>
+            <div id="currentIcon" class="hero-icon">☁️</div>
+          </div>
+          <div id="todayRange" class="today-range">最高 --°　最低 --°</div>
+        </div>
+
+        <section class="card">
+          <div class="card-title">未來 5 天</div>
+          <div id="fiveDays" class="five-days empty">尚無資料</div>
+        </section>
+
+        <section class="card">
+          <div class="card-title-row">
+            <div class="card-title">24 小時預報</div>
+            <div class="muted">氣象署逐時 / 逐3小時</div>
+          </div>
+          <div id="hourly" class="hourly-strip"></div>
+        </section>
+
+        <div class="metrics">
+          <div class="metric card"><span>濕度</span><strong id="humidity">--</strong></div>
+          <div class="metric card"><span>體感</span><strong id="apparent">--</strong></div>
+          <div class="metric card"><span>風速</span><strong id="wind">--</strong></div>
+          <div class="metric card"><span>降雨機率</span><strong id="pop">--</strong></div>
+        </div>
+
+        <div id="status" class="status"></div>
+      </section>
+
+      <section class="page" data-page="radar">
+        <div class="image-card">
+          <div class="image-head">
+            <div>
+              <h2>雷達回波圖</h2>
+              <p>臺灣較大範圍・有地形</p>
+            </div>
+            <button class="small-btn refresh-image">重新整理</button>
+          </div>
+          <img id="radarImg" class="cwa-img" alt="中央氣象署雷達回波圖" />
+        </div>
+      </section>
+
+      <section class="page" data-page="satellite">
+        <div class="image-card">
+          <div class="image-head">
+            <div>
+              <h2>東亞紅外線彩色雲圖</h2>
+              <p>中央氣象署衛星雲圖</p>
+            </div>
+            <button class="small-btn refresh-image">重新整理</button>
+          </div>
+          <img id="satelliteImg" class="cwa-img" alt="東亞紅外線彩色衛星雲圖" />
+        </div>
+      </section>
+
+      <section class="page" data-page="rain">
+        <div class="image-card">
+          <div class="image-head">
+            <div>
+              <h2>分時日累積雨量圖</h2>
+              <p>小間距日累積雨量</p>
+            </div>
+            <button class="small-btn refresh-image">重新整理</button>
+          </div>
+          <img id="rainImg" class="cwa-img" alt="日累積雨量圖" />
+        </div>
+      </section>
+
+      <section class="page" data-page="typhoon">
+        <div class="link-card">
+          <div class="big-emoji">🌀</div>
+          <h2>颱風路徑潛勢圖</h2>
+          <p>開啟中央氣象署官方颱風路徑潛勢頁面。若目前沒有颱風，官方頁面可能不會顯示路徑圖。</p>
+          <a class="primary-link" href="https://www.cwa.gov.tw/V8/C/P/Typhoon/TY_WARN.html" target="_blank" rel="noopener">開啟中央氣象署</a>
+        </div>
+      </section>
+
+      <section class="page" data-page="temperature">
+        <div class="link-card">
+          <div class="big-emoji">🌡️</div>
+          <h2>台灣溫度分布圖</h2>
+          <p>開啟中央氣象署官方溫度分布頁面。</p>
+          <a class="primary-link" href="https://www.cwa.gov.tw/V8/C/W/Temperature.html" target="_blank" rel="noopener">開啟中央氣象署</a>
+        </div>
+      </section>
+    </main>
+
+    <nav class="bottom-nav">
+      <button class="nav-btn active" data-target="home"><span>☀️</span><small>天氣</small></button>
+      <button class="nav-btn" data-target="radar"><span>📡</span><small>雷達</small></button>
+      <button class="nav-btn" data-target="satellite"><span>☁️</span><small>雲圖</small></button>
+      <button class="nav-btn" data-target="rain"><span>🌧️</span><small>雨量</small></button>
+      <button class="nav-btn" data-target="typhoon"><span>🌀</span><small>颱風</small></button>
+      <button class="nav-btn" data-target="temperature"><span>🌡️</span><small>溫度</small></button>
+    </nav>
+  </div>
+
+  <dialog id="settingsDialog">
+    <form method="dialog" class="settings">
+      <h2>中央氣象署 API 設定</h2>
+      <p>授權碼只會存在這台裝置的瀏覽器 localStorage。這是個人用 PWA 的方便做法，但不是伺服器端的秘密保存方式。</p>
+      <label>
+        API Authorization
+        <input id="apiKeyInput" type="password" autocomplete="off" placeholder="貼上中央氣象署 API 授權碼" />
+      </label>
+      <div class="dialog-actions">
+        <button value="cancel" class="small-btn">取消</button>
+        <button id="saveKeyBtn" value="default" class="primary-btn">儲存並重新載入</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
